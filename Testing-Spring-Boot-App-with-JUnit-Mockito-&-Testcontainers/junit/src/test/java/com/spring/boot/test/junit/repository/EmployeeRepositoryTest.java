@@ -5,12 +5,14 @@ import com.spring.boot.test.junit.model.Employee;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.List;
+import java.util.Optional;
 
 @DataJpaTest
 public class EmployeeRepositoryTest {
@@ -18,14 +20,20 @@ public class EmployeeRepositoryTest {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    @Test
-    @DisplayName("Given Employee Object When Save Then Return Saved Employee")
-    public void givenEmployeeObject_whenSave_thenReturnSavedEmployee() {
-        Employee empregado1 = Employee.builder()
+    private Employee empregado1;
+
+    @BeforeEach
+    public void setUp() {
+        empregado1 = Employee.builder()
                 .firstName("Vinícius")
                 .lastName("Andrade")
                 .email("vinicius_andrade2010@hotmail.com")
                 .build();
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Save Then Return Saved Employee")
+    public void givenEmployeeObject_whenSave_thenReturnSavedEmployee() {
 
         Employee empregadoSalvo = employeeRepository.save(empregado1);
 
@@ -76,15 +84,10 @@ public class EmployeeRepositoryTest {
         assertEquals("arthurdsandrade2008@gmail.com", savedEmpregado2.getEmail());
     }
 
-    //Junit test for
     @Test
     @DisplayName("Given Employee Object When Find By Id Then Return Employee Object")
     public void givenEmployeeObject_whenFindById_thenReturnEmployeeObject() {
-        Employee empregado1 = Employee.builder()
-                .firstName("Vinícius")
-                .lastName("Andrade")
-                .email("viniciusdsandrade0662@gmail.com")
-                .build();
+
 
         Employee empregadoSalvo = employeeRepository.save(empregado1);
 
@@ -92,23 +95,142 @@ public class EmployeeRepositoryTest {
         assertThat(employeeDB).isNotNull();
     }
 
-    //Junit test for
     @Test
     @DisplayName("Given Employee Object When Find By Email Then Return Employee Object")
     public void givenEmployeeObject_whenFindByEmail_thenReturnEmployeeObject() {
-        // given - preconditions or the input
-        Employee empregado1 = Employee.builder()
-                .firstName("Vinícius")
-                .lastName("Andrade")
-                .email("vinicius_andrade2010@hotmail.com")
-                .build();
 
         Employee empregadoSalvo = employeeRepository.save(empregado1);
 
         // when - save employees simultaneously
-        Employee employeeDB = employeeRepository.findByEmail(empregado1.getEmail()).orElse(null);
+        Employee employeeDB = employeeRepository.findByEmail(empregadoSalvo.getEmail()).orElse(null);
 
         // then - verify if the employee was saved correctly
         assertThat(employeeDB).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Update Then Return Updated Employee")
+    public void givenEmployeeObject_whenUpdate_thenReturnUpdatedEmployee() {
+
+        employeeRepository.save(empregado1);
+
+        // when - update employee
+        Employee savedEmployee = employeeRepository.findById(empregado1.getId()).orElse(null);
+        assert savedEmployee != null;
+        savedEmployee.setFirstName("Vinícius");
+        savedEmployee.setLastName("dos Santos Andrade");
+        savedEmployee.setEmail("vinicius_andrade2010@hotmail.com");
+
+        Employee updatedEmployee = employeeRepository.save(savedEmployee);
+
+        // then - verify if the employee was updated correctly
+        assertThat(updatedEmployee).isNotNull();
+        assertThat(updatedEmployee.getId()).isNotNull();
+        assertThat(updatedEmployee.getFirstName()).isEqualTo("Vinícius");
+        assertThat(updatedEmployee.getLastName()).isEqualTo("dos Santos Andrade");
+        assertThat(updatedEmployee.getEmail()).isEqualTo("vinicius_andrade2010@hotmail.com");
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Delete Then Return Null")
+    public void givenEmployeeObject_whenDelete_thenReturnsNull() {
+
+        employeeRepository.save(empregado1);
+
+        // when - delete employee
+        employeeRepository.delete(empregado1);
+
+        // then - verify if the employee was deleted correctly
+        Optional<Employee> employeeDB = employeeRepository.findById(empregado1.getId());
+        assertThat(employeeDB).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Find By JPQL Then Return Employee Object")
+    public void givenEmployeeObject_whenFindByJPQL_thenReturnEmployeeObject() {
+
+
+        employeeRepository.save(empregado1);
+
+        // when - find employee by JPQL
+        Employee employeeDB = employeeRepository.findByJPQL(empregado1.getFirstName(), empregado1.getLastName());
+
+        // then - verify if the employee was found correctly
+        assertThat(employeeDB).isNotNull();
+
+        // Assertions to verify if the employee was found correctly
+        assertEquals("Vinícius", employeeDB.getFirstName());
+        assertEquals("Andrade", employeeDB.getLastName());
+        assertEquals("vinicius_andrade2010@hotmail.com", employeeDB.getEmail());
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Find By Native Query Then Return Employee Object")
+    public void givenEmployeeObject_whenFindByNativeQuery_thenReturnEmployeeObject() {
+
+        employeeRepository.save(empregado1);
+
+        // when - find employee by Native Query
+        Employee employeeDB = employeeRepository.findByNativeQuery(empregado1.getFirstName(), empregado1.getLastName());
+
+        // then - verify if the employee was found correctly
+        assertThat(employeeDB).isNotNull();
+
+        // Assertions to verify if the employee was found correctly
+        assertEquals("Vinícius", employeeDB.getFirstName());
+        assertEquals("Andrade", employeeDB.getLastName());
+        assertEquals("vinicius_andrade2010@hotmail.com", employeeDB.getEmail());
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Find By JPQL With Named Parameters Then Return Employee Object")
+    public void givenEmployeeObject_whenFindByJPQLWithNamedParameters_thenReturnEmployeeObject() {
+        employeeRepository.save(empregado1);
+
+        // when - find employee by JPQL with named parameters
+        Employee employeeDB = employeeRepository.findByJPQLWithNamedParameters(empregado1.getFirstName(), empregado1.getLastName());
+
+        // then - verify if the employee was found correctly
+        assertThat(employeeDB).isNotNull();
+
+        // Assertions to verify if the employee was found correctly
+        assertEquals("Vinícius", employeeDB.getFirstName());
+        assertEquals("Andrade", employeeDB.getLastName());
+        assertEquals("vinicius_andrade2010@hotmail.com", employeeDB.getEmail());
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Find By First Name And Last Name Then Return Employee Object")
+    public void givenEmployeeObject_whenFindByFirstNameAndLastName_thenReturnEmployeeObject() {
+
+        employeeRepository.save(empregado1);
+
+        // when - find employee by first name and last name
+        Employee employeeDB = employeeRepository.findByFirstNameAndLastName(empregado1.getFirstName(), empregado1.getLastName());
+
+        // then - verify if the employee was found correctly
+        assertThat(employeeDB).isNotNull();
+
+        // Assertions to verify if the employee was found correctly
+        assertEquals("Vinícius", employeeDB.getFirstName());
+        assertEquals("Andrade", employeeDB.getLastName());
+        assertEquals("vinicius_andrade2010@hotmail.com", employeeDB.getEmail());
+    }
+
+    @Test
+    @DisplayName("Given Employee Object When Find By Native Query With Named Parameters Then Return Employee Object")
+    public void givenEmployeeObject_whenFindByNativeQueryWithNamedParameters_thenReturnEmployeeObject() {
+        employeeRepository.save(empregado1);
+
+        // when - find employee by Native Query with named parameters
+        Employee employeeDB = employeeRepository.findByNativeQueryWithNamedParameters(empregado1.getFirstName(), empregado1.getLastName());
+
+        // then - verify if the employee was found correctly
+        assertThat(employeeDB).isNotNull();
+
+        // Assertions to verify if the employee was found correctly
+        assertEquals("Vinícius", employeeDB.getFirstName());
+        assertEquals("Andrade", employeeDB.getLastName());
+        assertEquals("vinicius_andrade2010@hotmail.com", employeeDB.getEmail());
     }
 }
