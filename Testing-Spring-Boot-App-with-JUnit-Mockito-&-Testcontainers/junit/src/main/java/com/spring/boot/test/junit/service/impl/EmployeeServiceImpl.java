@@ -38,7 +38,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Optional<Employee> getEmployeeById(Long id) {
-        return employeeRepository.findById(id);
+        Optional<Employee> employee = employeeRepository.findById(id);
+
+        if (employee.isEmpty())
+            throw new ResourceNotFoundException("Employee not found with id: " + id);
+
+        return employee;
     }
 
     @Override
@@ -53,6 +58,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void deleteEmployee(Long id) {
-        employeeRepository.deleteById(id);
+        Optional<Employee> employee = employeeRepository.findById(id);
+
+        if (employee.isEmpty())
+            throw new ResourceNotFoundException("Employee not found with id: " + id);
+
+        employeeRepository.delete(employee.get());
     }
 }

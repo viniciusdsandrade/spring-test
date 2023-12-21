@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -21,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.mockito.BDDMockito.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @WebMvcTest(EmployeeController.class)
 public class EmployeeControllerTest {
@@ -107,5 +110,182 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$[1].lastName", is(employee2.getLastName())))
                 .andExpect(jsonPath("$[1].email", is(employee2.getEmail())))
                 .andDo(print());
+    }
+
+
+    @Test
+    @DisplayName("Given employee object when get employee by id then return status ok")
+    void givenEmployeeObject_whenGetEmployeeById_thenReturnStatusOk() throws Exception {
+        // Arrange
+
+        // Criação de um objeto de Employee para simular dados existentes no banco de dados
+        Employee employee = Employee.builder()
+                .id(1L)
+                .firstName("Vinícius")
+                .lastName("Andrade")
+                .email("vinicius_andrade2010@hotmail.com")
+                .build();
+
+        // Configuração do serviço mock para retornar um Employee ao chamar getEmployeeById
+        given(employeeService.getEmployeeById(employee.getId()))
+                .willReturn(Optional.of(employee));
+
+        // Act
+        ResultActions response = mockMvc.perform(get("/api/v1/employee/{id}", employee.getId()));
+
+        // Asserts para verificar se a resposta é conforme o esperado
+        response.andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.id", is(employee.getId().intValue())))
+                .andExpect(jsonPath("$.firstName", is(employee.getFirstName())))
+                .andExpect(jsonPath("$.lastName", is(employee.getLastName())))
+                .andExpect(jsonPath("$.email", is(employee.getEmail())))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Given employee object when get employee by id then return status 404 not found")
+    void givenEmployeeObject_whenGetEmployeeById_thenReturnStatusNotFound() throws Exception {
+        // Arrange
+        long employeeId = 1L;
+        Employee employee = Employee.builder()
+                .id(employeeId)
+                .firstName("Vinícius")
+                .lastName("Andrade")
+                .email("vinicius_andrade2010@hotmail.com")
+                .build();
+        
+        // Configuração do serviço mock para retornar um Optional vazio ao chamar getEmployeeById
+        given(employeeService.getEmployeeById(employee.getId()))
+                .willReturn(Optional.empty());
+
+        // Act
+        ResultActions response = mockMvc.perform(get("/api/v1/employee/{id}", employeeId));
+
+        // Asserts para verificar se a resposta é conforme o esperado
+        response.andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Given employee object when update employee by id then return status ok")
+    void givenEmployeeObject_whenUpdateEmployeeById_thenReturnStatusOk() throws Exception {
+        // Arrange
+
+        long employeeId = 1L;
+
+        // Criação de um objeto de Employee para simular dados existentes no banco de dados
+        Employee saveEmployee = Employee.builder()
+                .firstName("Vinícius")
+                .lastName("Andrade")
+                .email("vinicius_andrade2010@hotmail.com")
+                .build();
+
+        // Criação de um objeto de Employee para simular a entrada do usuário
+        Employee updateEmployee = Employee.builder()
+                .firstName("Arthur")
+                .lastName("Andrade")
+                .email("viniciusdsandrrade0662@gmail.com")
+                .build();
+
+        // Configuração do serviço mock para retornar um Employee ao chamar getEmployeeById
+        given(employeeService.getEmployeeById(employeeId))
+                .willReturn(Optional.of(saveEmployee));
+
+        // Configuração do serviço mock para retornar um Employee ao chamar updateEmployeeById
+        given(employeeService.getEmployeeById(employeeId)).willReturn(Optional.of(updateEmployee));
+        given(employeeService.updateEmployeeById(any(Employee.class)))
+                .willAnswer((invocation) -> invocation.getArgument(0));
+
+
+        // Act
+        ResultActions response = mockMvc.perform(put("/api/v1/employee/{id}", employeeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateEmployee)));
+
+        // Asserts para verificar se a resposta é conforme o esperado
+        response.andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.firstName", is(updateEmployee.getFirstName())))
+                .andExpect(jsonPath("$.lastName", is(updateEmployee.getLastName())))
+                .andExpect(jsonPath("$.email", is(updateEmployee.getEmail())))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Given employee object when update employee by id then return status 404 not found")
+    void givenEmployeeObject_whenUpdateEmployeeById_thenReturnStatusNotFound() throws Exception {
+
+        long employeeId = 1L;
+
+        // Criação de um objeto de Employee para simular dados existentes no banco de dados
+        Employee saveEmployee = Employee.builder()
+                .firstName("Vinícius")
+                .lastName("Andrade")
+                .email("vinicius_andrade2010@hotmail.com")
+                .build();
+
+        // Criação de um objeto de Employee para simular a entrada do usuário
+        Employee updateEmployee = Employee.builder()
+                .firstName("Arthur")
+                .lastName("Andrade")
+                .email("viniciusdsandrrade0662@gmail.com")
+                .build();
+
+        // Configuração do serviço mock para retornar um Optional vazio ao chamar getEmployeeById
+        given(employeeService.getEmployeeById(employeeId)).willReturn(Optional.empty());
+
+        // Configuração do serviço mock para retornar um Optional vazio ao chamar updateEmployeeById
+        given(employeeService.updateEmployeeById(any(Employee.class)))
+                .willAnswer((invocation) -> invocation.getArgument(0));
+
+        // Act
+        ResultActions response = mockMvc.perform(put("/api/v1/employee/{id}", employeeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateEmployee)));
+
+        // Asserts para verificar se a resposta é conforme o esperado
+        response.andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Given employee object when delete employee by id then return status ok")
+    void givenEmployeeObject_whenDeleteEmployeeById_thenReturnStatusOk() throws Exception {
+
+        long employeeId = 1L;
+
+        // Criação de um objeto de Employee para simular dados existentes no banco de dados
+        Employee employee = Employee.builder()
+                .id(employeeId)
+                .firstName("Vinícius")
+                .lastName("Andrade")
+                .email("vinicius_andrade2010@hotmail.com")
+                .build();
+
+        // Configuração do serviço mock para retornar um Employee ao chamar getEmployeeById
+        given(employeeService.getEmployeeById(employeeId))
+                .willReturn(Optional.of(employee));
+        
+        // Act
+        ResultActions response = mockMvc.perform(delete("/api/v1/employee/{id}", employeeId));
+        
+        // Asserts para verificar se a resposta é conforme o esperado
+        response.andExpect(status().isNoContent())
+                .andDo(print());
+
+        then(employeeService).should().deleteEmployee(employeeId);
+    }
+
+    @Test
+    @DisplayName("Given employee object when delete employee by id then return status 404 not found")
+    void givenEmployeeObject_whenDeleteEmployeeById_thenReturnStatusNotFound_ifNotFoundObjectToDelete() throws Exception {
+        // Given an employee ID
+        long employeeId = 123;
+
+        // When trying to delete the employee with the given ID
+        mockMvc.perform(MockMvcRequestBuilders.delete("/employees/{id}", employeeId))
+                // Then expect status 404 (not found)
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 }

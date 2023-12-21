@@ -1,6 +1,7 @@
 package com.spring.boot.test.junit.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.util.Objects;
@@ -12,21 +13,24 @@ import java.util.Objects;
 @NoArgsConstructor
 @Entity(name = "Employee")
 @Table(
-        name = "employee"
+        name = "employee",
+        schema = "db_employee_junit"
 )
 public class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name", nullable = false, columnDefinition = "VARCHAR(50)")
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name", nullable = false, columnDefinition = "VARCHAR(50)")
     private String lastName;
 
-    @Column(name = "email", nullable = false)
+    @Email
+    @Column(name = "email", nullable = false, columnDefinition = "VARCHAR(50)")
     private String email;
 
     @Override
@@ -59,10 +63,10 @@ public class Employee {
         final int prime = 31;
         int hash = 1;
 
-        hash = prime * hash + ((this.id == null) ? 0 : this.id.hashCode());
-        hash = prime * hash + ((this.firstName == null) ? 0 : this.firstName.hashCode());
-        hash = prime * hash + ((this.lastName == null) ? 0 : this.lastName.hashCode());
-        hash = prime * hash + ((this.email == null) ? 0 : this.email.hashCode());
+        hash *= prime + ((this.id == null) ? 0 : this.id.hashCode());
+        hash *= prime + ((this.firstName == null) ? 0 : this.firstName.hashCode());
+        hash *= prime + ((this.lastName == null) ? 0 : this.lastName.hashCode());
+        hash *= prime + ((this.email == null) ? 0 : this.email.hashCode());
 
         if (hash < 0)
             hash *= -1;
